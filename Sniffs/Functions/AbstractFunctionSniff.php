@@ -38,13 +38,6 @@ abstract class Secl_Sniffs_Functions_AbstractFunctionSniff implements
     public $checkFunctions = true;
 
     /**
-     * Should this sniff check closure braces?
-     *
-     * @var bool
-     */
-    public $checkClosures = true;
-
-    /**
      * Registers the tokens that this sniff wants to listen for.
      *
      * @return array
@@ -53,7 +46,6 @@ abstract class Secl_Sniffs_Functions_AbstractFunctionSniff implements
     {
         return array(
             T_FUNCTION,
-            T_CLOSURE,
         );
     }//end register()
 
@@ -80,9 +72,7 @@ abstract class Secl_Sniffs_Functions_AbstractFunctionSniff implements
             return false;
         }
 
-        if ($this->isFunction($stackPtr, $tokens)
-            || $this->isClosure($stackPtr, $tokens)
-        ) {
+        if ($this->isFunction($stackPtr, $tokens)) {
             return false;
         }
 
@@ -99,17 +89,5 @@ abstract class Secl_Sniffs_Functions_AbstractFunctionSniff implements
     {
         return $tokens[$stackPtr]['code'] === T_FUNCTION
             && (bool) $this->checkFunctions === false;
-    }
-
-    /**
-     * @param int   $stackPtr
-     * @param array $tokens
-     *
-     * @return bool
-     */
-    private function isClosure($stackPtr, $tokens)
-    {
-        return $tokens[$stackPtr]['code'] === T_CLOSURE
-            && (bool) $this->checkClosures === false;
     }
 }//end class
