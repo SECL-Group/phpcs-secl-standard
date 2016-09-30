@@ -22,7 +22,7 @@ described in the following but the composer way is recommended:
 
 ### Using Composer
 
-1. Install The standard as dependency of your composer based project (It will install the composer version of PHP_CodeSniffer as dependency):
+1. Install the standard as dependency of your composer based project (It will install the composer version of PHP_CodeSniffer as dependency):
 
         $ php composer.phar require --dev secl-group/phpcs-secl-standard:~1.0.0
 
