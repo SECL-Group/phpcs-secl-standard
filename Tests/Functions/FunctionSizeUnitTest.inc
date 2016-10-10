@@ -38,3 +38,35 @@ function invalidFunctionOfSixteenLines()
 
     return;
 }
+
+function validFunctionOfSixteenCodeLines()
+{
+    echo '';
+
+    //Comment
+    echo '';
+
+    echo '';
+    echo '';
+
+    /* Comment */
+    echo '';
+
+
+    echo '';
+    echo '';
+
+    /** @var Comment */
+    echo '';
+
+    echo '';
+
+
+    /**
+     * @var Comment
+     */
+    echo '';
+    echo '';
+
+    return;
+}

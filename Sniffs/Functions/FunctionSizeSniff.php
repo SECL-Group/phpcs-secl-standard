@@ -27,8 +27,7 @@
  * @version   Release: 1.0.0
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
-class Secl_Sniffs_Functions_FunctionSizeSniff extends
-    Secl_Sniffs_Functions_AbstractFunctionSniff
+class Secl_Sniffs_Functions_FunctionSizeSniff extends Secl_Sniffs_Functions_AbstractFunctionSniff
 {
     /**
      * Maximum lines number of the function
@@ -64,7 +63,7 @@ class Secl_Sniffs_Functions_FunctionSizeSniff extends
     }
 
     /**
-     * @param int $stackPtr
+     * @param int   $stackPtr
      * @param array $tokens
      *
      * @return int
@@ -77,16 +76,101 @@ class Secl_Sniffs_Functions_FunctionSizeSniff extends
         $endFunctionLine = $tokens[$closingBrace]['line'];
         $functionTotalSize = $endFunctionLine - $firstFunctionLine;
 
-        $blankLineCount = 0;
+        $negligibleLineCount = $this->insideFunctionLoop($tokens, $openingBrace, $closingBrace);
 
-        for ($i = $openingBrace + 1; $i < $closingBrace - 1; $i++) {
-            if ($tokens[$i]['column'] === 1 && $tokens[$i]['length'] === 0) {
-                $blankLineCount++;
-            }
-        }
-
-        $functionEffectiveSize = ($functionTotalSize - $blankLineCount);
+        $functionEffectiveSize = ($functionTotalSize - $negligibleLineCount);
 
         return $functionEffectiveSize;
+    }
+
+    /**
+     * @param array $tokens
+     * @param int   $openingBrace
+     * @param int   $closingBrace
+     *
+     * @return int
+     */
+    private function insideFunctionLoop($tokens, $openingBrace, $closingBrace)
+    {
+        $negligibleLineCount = 0;
+
+        for ($i = $openingBrace + 1; $i < $closingBrace - 1; $i++) {
+            list($lineCountForIteration, $i) = $this->negligibleLineCountForIteration($tokens, $i);
+            $negligibleLineCount = $negligibleLineCount + $lineCountForIteration;
+        }
+
+        return $negligibleLineCount;
+    }
+
+    /**
+     * @param array $tokens
+     * @param int   $iterationIndex
+     *
+     * @return array
+     */
+    private function negligibleLineCountForIteration($tokens, $iterationIndex)
+    {
+        $negligibleLineCount = 0;
+
+        list($docCommentLineCount, $iterationIndex) = $this->docComment($tokens, $iterationIndex);
+
+        if ($docCommentLineCount) {
+            $negligibleLineCount = $negligibleLineCount + $docCommentLineCount;
+        } else {
+            $negligibleLineCount = $negligibleLineCount + $this->emptyString($tokens, $iterationIndex);
+            $negligibleLineCount = $negligibleLineCount + $this->inlineComment($tokens, $iterationIndex);
+        }
+
+        return [$negligibleLineCount, $iterationIndex];
+    }
+
+    /**
+     * @param array $tokens
+     * @param int   $iterationIndex
+     *
+     * @return array
+     */
+    private function docComment($tokens, $iterationIndex)
+    {
+        if ($tokens[$iterationIndex]['code'] === T_DOC_COMMENT_OPEN_TAG) {
+            $commentOpenerLine = $tokens[$iterationIndex]['line'];
+            $commentCloserToken = $tokens[$iterationIndex]['comment_closer'];
+            $commentCloserLine = $tokens[$commentCloserToken]['line'];
+            $negligibleLineCount = $commentCloserLine - $commentOpenerLine + 1;
+
+            return [$negligibleLineCount, $commentCloserToken];
+        }
+
+        return [0, $iterationIndex];
+    }
+
+    /**
+     * @param array $tokens
+     * @param int   $iterationIndex
+     *
+     * @return int
+     */
+    private function inlineComment($tokens, $iterationIndex)
+    {
+        if (T_COMMENT === $tokens[$iterationIndex]['code']) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param array $tokens
+     * @param int   $iterationIndex
+     *
+     * @return int
+     */
+    private function emptyString($tokens, $iterationIndex)
+    {
+        if ($tokens[$iterationIndex]['column'] === 1 && $tokens[$iterationIndex]['length'] === 0) {
+            return 1;
+        }
+
+        return 0;
     }
 }//end class
